@@ -162,9 +162,10 @@ def build_electricity_meter_array(sp_client):
 
         if meter_calc == "Direct":
             result.append({
+                "document_type": "electric_bills",
                 "district": district,
                 "ou": ou,
-                "meter_no": meter_no,
+                "account_no": meter_no,
                 "meter_calculation": "Direct",
                 "sub_meter_id": None,
                 "sub_meter_no": None,
@@ -185,6 +186,7 @@ def build_electricity_meter_array(sp_client):
             sub_items = get_submeters_by_master_meter(sp_client, meter_no)
             for sp in sub_items:
                 result.append({
+                    "document_type": "electric_bills",
                     "district": district,
                     "ou": ou,
                     "account_no": meter_no,

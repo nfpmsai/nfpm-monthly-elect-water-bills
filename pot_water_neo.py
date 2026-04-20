@@ -190,6 +190,7 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
         new_period_end  = cal_date(period_end_raw, end_year, end_month_shifted)
 
         result.append({
+            "document_type": "water_bills",
             "portfolio":                    portfolio,
             "district":                     district,
             "ou":                           ou,
