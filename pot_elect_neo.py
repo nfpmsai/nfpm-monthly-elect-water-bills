@@ -177,7 +177,8 @@ def build_electricity_meter_array(sp_client):
                 "consumption": None,
                 "bill_amount": None,
                 "period_start": new_period_start,
-                "period_end": new_period_end
+                "period_end": new_period_end,
+                "is_active": True
             })
 
         elif meter_calc == "Submetered":
@@ -199,7 +200,8 @@ def build_electricity_meter_array(sp_client):
                     "consumption": None,
                     "bill_amount": None,
                     "period_start": new_period_start,
-                    "period_end": new_period_end
+                    "period_end": new_period_end,
+                    "is_active": True
                 })
 
     return result

@@ -202,6 +202,7 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
             "potable_water_reduction":      None,
             "period_start":                 new_period_start,
             "period_end":                   new_period_end,
+            "is_active": True
         })
 
     return result
