@@ -186,7 +186,7 @@ def build_electricity_meter_array(sp_client):
                 result.append({
                     "district": district,
                     "ou": ou,
-                    "meter_no": meter_no,
+                    "account_no": meter_no,
                     "meter_calculation": "SubMeter",
                     "sub_meter_id": _safe_get(sp, "SubMeterID"),
                     "sub_meter_no": _safe_get(sp, "SubMeterNumber"),
