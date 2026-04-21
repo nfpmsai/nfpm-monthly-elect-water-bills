@@ -147,14 +147,14 @@ def build_electricity_meter_array(sp_client):
             continue
 
         new_year = date.today().year
-        new_month = date.today().month - (int(sample_month) - get_month(period_start))
+        new_month = date.today().month - (int(sample_month) - get_month(period_start)) - 1
         if new_month == 0:
             new_year = date.today().year - 1
             new_month = 12
         new_period_start = cal_date(period_start, new_year, new_month)
 
         new_year = date.today().year
-        new_month = date.today().month - (int(sample_month) - get_month(period_end))
+        new_month = date.today().month - (int(sample_month) - get_month(period_end)) - 1
         if new_month > 12:
             new_year = date.today().year + 1
             new_month = 1
@@ -173,8 +173,8 @@ def build_electricity_meter_array(sp_client):
                 "ct_meter_formula": None,
                 "input_type": None,
                 "bill_not_received": "N",
-                "year": date.today().year,
-                "month": date.today().month,
+                "year": date.today().year - 1 if date.today().month == 1 else date.today().year,
+                "month": 12 if date.today().month == 1 else date.today().month - 1,
                 "consumption": None,
                 "bill_amount": None,
                 "period_start": new_period_start,
