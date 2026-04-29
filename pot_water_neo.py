@@ -164,7 +164,7 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
     else:
         scoring_year  = today.year
         scoring_month = today.month - 1
-
+    
     for props in meters:
         portfolio  = _safe_get(props, "Profolio")       # SharePoint column is "Profolio"
         district   = _safe_get(props, "District")
@@ -195,9 +195,9 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
             "district":                     district,
             "ou":                           ou,
             "account_no":                   account_no,
-            "scoring_year":                 scoring_year,
-            "scoring_month":                scoring_month,
-            "all_data_received":            False,
+            "year":                 scoring_year,
+            "month":                scoring_month,
+            "not_all_data_received":            False,
             "month_of_wsd_billing":         f"{scoring_year}-{scoring_month:02d}",
             "cubic_meter_of_potable_water": None,
             "potable_water_reduction":      None,
@@ -263,13 +263,13 @@ def main():
     print("[INFO] 讀取 Water Meter Master...")
     meter_docs = build_water_meter_array(sp_client)
     print(f"[INFO] 共 {len(meter_docs)} 筆水錶記錄")
-
+    print(meter_docs)
     if not meter_docs:
         print("[WARN] 沒有有效記錄，跳過插入")
         return
 
     print(f"[INFO] 插入 MongoDB collection: {MONGO_COLLECTION}...")
-    result = api_request("POST", "/", collection=MONGO_COLLECTION, data=meter_docs)
+    result = api_request("POST", "/", database=MONGO_DB, collection=MONGO_COLLECTION, data=meter_docs)
     print(result)
 
 

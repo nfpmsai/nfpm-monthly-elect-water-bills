@@ -146,6 +146,8 @@ def build_electricity_meter_array(sp_client):
         if not meter_no:
             continue
 
+        ou = 'TKO MALL' if ou == 'TKO (Comm.)' else ou
+        ou = 'MOS MALL' if ou == 'MOS (Comm.)' else ou
         new_year = date.today().year
         new_month = date.today().month - (int(sample_month) - get_month(period_start)) - 1
         if new_month == 0:
@@ -283,7 +285,7 @@ def main():
     sp_client = create_sharepoint_client()
     meter_docs = build_electricity_meter_array(sp_client)
     print(meter_docs)
-    inserted = api_request("POST", "/", collection=MONGO_COLLECTION, data=meter_docs)
+    inserted = api_request("POST", "/", database=MONGO_DB, collection=MONGO_COLLECTION, data=meter_docs)
     print(inserted)
 
 
