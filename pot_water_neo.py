@@ -1,13 +1,13 @@
 import os
 import json
-from datetime import date, datetime, timedelta
-from calendar import monthrange
+from datetime import date
 from typing import Dict, Any, List, Optional
 
 import requests
 import msal
 from urllib.parse import urlparse
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -108,54 +108,14 @@ def create_sharepoint_client() -> SharePointGraphClient:
     return client
 
 
-# ========= 日期工具 =========
-def last_day_of_month(year: int, month: int) -> int:
-    _, last_day = monthrange(year, month)
-    return last_day
-
-
-def get_month(iso_date: str) -> int:
-    """Extract month (HKT = UTC+8) from an ISO date string."""
-    dt = datetime.fromisoformat(iso_date.replace("Z", "+00:00"))
-    return (dt + timedelta(hours=8)).month
-
-
-def cal_date(ref_date: str, target_year: int, target_month: int) -> str:
-    """Shift a template ISO date to a different year/month, preserving the day (capped at month end)."""
-    dt         = datetime.fromisoformat(ref_date.replace("Z", "+00:00"))
-    dt_hkt     = dt + timedelta(hours=8)
-    last_day   = last_day_of_month(target_year, target_month)
-    new_day    = min(dt_hkt.day, last_day)
-    new_dt     = dt_hkt.replace(year=target_year, month=target_month, day=new_day)
-    return new_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def shift_month(base_year: int, base_month: int, offset: int):
-    """Add an integer month offset to a year/month pair, wrapping correctly."""
-    total    = base_month + offset
-    new_year = base_year + (total - 1) // 12
-    new_month = ((total - 1) % 12) + 1
-    return new_year, new_month
-
-
 # ========= 核心業務邏輯 =========
 def _safe_get(props, key, default=None):
     return props.get(key, default) if props else default
 
 
 def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, Any]]:
-    """
-    Read every row from Water Meter Master and build one MongoDB document per meter.
-
-    Period date calculation:
-      - Use period_start's month as the reference month (ref_month).
-      - Shift period_start to today's month (offset = 0 from ref).
-      - Shift period_end by preserving its calendar-month distance from period_start,
-        so the billing cycle length stays intact.
-    """
     meters = sp_client.get_all_list_items(LIST_WATER_MASTER)
     today  = date.today()
-    result = []
 
     # Scoring month = previous calendar month
     if today.month == 1:
@@ -164,46 +124,26 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
     else:
         scoring_year  = today.year
         scoring_month = today.month - 1
-    
-    for props in meters:
-        portfolio  = _safe_get(props, "Profolio")       # SharePoint column is "Profolio"
-        district   = _safe_get(props, "District")
-        ou         = _safe_get(props, "OU")
-        account_no = _safe_get(props, "AccountNo")
-        period_start_raw = _safe_get(props, "PeriodStart")
-        period_end_raw   = _safe_get(props, "PeriodEnd")
 
+    result = []
+    for props in meters:
+        account_no = _safe_get(props, "AccountNo")
         if not account_no:
             continue
-        if not period_start_raw or not period_end_raw:
-            print(f"  [SKIP] AccountNo={account_no} — 缺少 PeriodStart / PeriodEnd")
-            continue
-
-        # --- period_start → always lands on the scoring year/month ---
-        new_period_start = cal_date(period_start_raw, scoring_year, scoring_month)
-
-        # --- period_end → preserve the month gap from period_start ---
-        ref_month       = get_month(period_start_raw)
-        end_month       = get_month(period_end_raw)
-        month_gap       = end_month - ref_month          # e.g. Jun(6) - Feb(2) = 4
-        end_year, end_month_shifted = shift_month(scoring_year, scoring_month, month_gap)
-        new_period_end  = cal_date(period_end_raw, end_year, end_month_shifted)
 
         result.append({
-            "document_type": "water_bills",
-            "portfolio":                    portfolio,
-            "district":                     district,
-            "ou":                           ou,
+            "document_type":                "water_bills",
+            "portfolio":                    _safe_get(props, "Profolio"),
+            "district":                     _safe_get(props, "District"),
+            "ou":                           _safe_get(props, "OU"),
             "account_no":                   account_no,
-            "year":                 scoring_year,
-            "month":                scoring_month,
-            "not_all_data_received":            False,
+            "scoring_year":                 scoring_year,
+            "scoring_month":                scoring_month,
+            "all_data_received":            False,
             "month_of_wsd_billing":         f"{scoring_year}-{scoring_month:02d}",
             "cubic_meter_of_potable_water": None,
             "potable_water_reduction":      None,
-            "period_start":                 new_period_start,
-            "period_end":                   new_period_end,
-            "is_active": True
+            "is_active":                    True,
         })
 
     return result
