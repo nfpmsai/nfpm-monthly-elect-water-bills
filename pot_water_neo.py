@@ -116,6 +116,8 @@ def _safe_get(props, key, default=None):
 def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, Any]]:
     meters = sp_client.get_all_list_items(LIST_WATER_MASTER)
     today  = date.today()
+    
+    #today = date(2026, 4, 1)
 
     # Scoring month = previous calendar month
     if today.month == 1:
@@ -130,16 +132,19 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
         account_no = _safe_get(props, "AccountNo")
         if not account_no:
             continue
-
+        
+        ou = _safe_get(props, "OU")
+        ou = 'TKO MALL' if ou == 'TKO (Comm.)' else ou
+        ou = 'MOS MALL' if ou == 'MOS (Comm.)' else ou
         result.append({
             "document_type":                "water_bills",
             "portfolio":                    _safe_get(props, "Profolio"),
             "district":                     _safe_get(props, "District"),
-            "ou":                           _safe_get(props, "OU"),
+            "ou":                           ou,
             "account_no":                   account_no,
             "year":                 scoring_year,
             "month":                scoring_month,
-            "all_data_received":            False,
+            "not_all_data_received":            False,
             "month_of_wsd_billing":         f"{scoring_year}-{scoring_month:02d}",
             "cubic_meter_of_potable_water": None,
             "potable_water_reduction":      None,
