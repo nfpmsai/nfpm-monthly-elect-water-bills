@@ -149,6 +149,7 @@ def build_water_meter_array(sp_client: SharePointGraphClient) -> List[Dict[str, 
             "cubic_meter_of_potable_water": None,
             "potable_water_reduction":      None,
             "is_active":                    True,
+            "allow_deduction":              _safe_get(props, allow_deduction)
         })
 
     return result

@@ -142,6 +142,7 @@ def build_electricity_meter_array(sp_client):
         sample_month = _safe_get(props, "MonthNo")
         period_start = _safe_get(props, "PeriodStart")
         period_end = _safe_get(props, "PeriodEnd")
+        allow_deduction = _safe_get(props, "allowdeduction")
 
         if not meter_no:
             continue
@@ -181,7 +182,8 @@ def build_electricity_meter_array(sp_client):
                 "bill_amount": None,
                 "period_start": new_period_start,
                 "period_end": new_period_end,
-                "is_active": True
+                "is_active": True,
+                "allow_deduction": allow_deduction
             })
 
         elif meter_calc == "Submetered":
@@ -205,7 +207,8 @@ def build_electricity_meter_array(sp_client):
                     "bill_amount": None,
                     "period_start": new_period_start,
                     "period_end": new_period_end,
-                    "is_active": True
+                    "is_active": True,
+                    "allow_deduction": allow_deduction
                 })
 
     return result
